@@ -1,0 +1,413 @@
+A1.1
+include<stdio.h>
+int fib(int n) {
+ if (n == 1)
+ return 0; //First digit in the series is 0
+ else if (n == 2)
+ return 1; //Second digit in the series is 1
+ else
+ return (fib(n - 1) + fib(n - 2)); //Sum of previous two numbers in the series gives the next number in the
+series
+}
+int main() {
+ int n = 5;
+int i;
+ printf("The fibonacci series is :\n");
+ for (i = 1; i <= n; i++) {
+ printf("%d ", fib(i));
+ }
+}
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+A1.2
+
+#include<stdio.h>
+int fib(int n) {
+ int arr[5];
+ int i;
+ arr[0] = 0; // First term is zero
+ arr[1] = 1; // Second term is one
+ for (i = 2; i <= n; i++) {
+ arr[i] = arr[i - 1] + arr[i - 2]; //Calculating the sum of previous two fibonacci numbers
+ }
+ for (i = 0; i <= n - 1; i++) {
+ printf("%d ", arr[i]);
+ }
+}
+int main() {
+ int n = 5;
+ printf("The Fibonacci series is : \n");
+ fib(n);
+ return 0;
+}
+
+
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+A2
+
+#include <stdio.h>
+#include <stdlib.h>
+// node
+/*
+ _____
+ | data|
+ | freq|
+ |_____|
+left ch./ \right chlid address
+ _____/ \ _____
+| data| | data|
+| freq| | freq|
+|_____| |_____|
+*/
+typedef struct node
+{
+ int frequency;
+ char data;
+ struct node *left;
+ struct node *right;
+}node;
+int heap_array_size = 100; // size of array storing heap
+int heap_size = 0;
+
+const int INF = 100000;
+//function to swap nodes
+void swap( node *a, node *b ) {
+ node t;
+ t = *a;
+ *a = *b;
+ *b = t;
+}
+/*
+ function to print tree
+ https://www.codesdope.com/blog/article/binary-tree-in-c-linked-representation-traversals/
+*/
+void inorder(struct node *root)
+{
+ if(root!=NULL) // checking if the root is not null
+ {
+ inorder(root->left); // visiting left child
+ printf(" %d ", root->frequency); // printing data at root
+ inorder(root->right);// visiting right child
+ }
+}
+/*
+ function for new node
+*/
+node* new_node(char data, int freq) {
+ node *p;
+ p = malloc(sizeof(struct node));
+ p->data = data;
+ p->frequency = freq;
+ p->left = NULL;
+ p->right = NULL;
+ return p;
+}
+//function to get right child of a node of a tree
+int get_right_child(int index) {
+ if((((2*index)+1) <= heap_size) && (index >= 1))
+ return (2*index)+1;
+ return -1;
+}
+//function to get left child of a node of a tree
+int get_left_child(int index) {
+ if(((2*index) <= heap_size) && (index >= 1))
+ return 2*index;
+ return -1;
+}
+//function to get the parent of a node of a tree
+int get_parent(int index) {
+ if ((index > 1) && (index <= heap_size)) {
+ return index/2;
+ }
+ return -1;
+}
+
+/* Functions taken from minimum priority queue
+ https://www.codesdope.com/blog/article/priority-queue-using-heap/
+ https://www.codesdope.com/blog/article/heap-binary-heap/*/
+void insert(node A[], node* a, int key) {
+ heap_size++;
+ A[heap_size] = *a;
+ int index = heap_size;
+ while((index>1) && (A[get_parent(index)].frequency > a->frequency)) {
+ swap(&A[index], &A[get_parent(index)]);
+ index = get_parent(index);
+ }
+}
+node* build_queue(node c[], int size) {
+ node* a = malloc(sizeof(node)*heap_array_size); // a is the array to store heap
+ int i;
+ for(i=0; i<size; i++) {
+ insert(a, &c[i], c[i].frequency); // inserting node in array a(min-queue)
+ }
+ return a;
+}
+void min_heapify(node A[], int index) {
+ int left_child_index = get_left_child(index);
+ int right_child_index = get_right_child(index);
+ // finding smallest among index, left child and right child
+ int smallest = index;
+ if ((left_child_index <= heap_size) && (left_child_index>0)) {
+ if (A[left_child_index].frequency < A[smallest].frequency) {
+ smallest = left_child_index;
+ }
+ }
+ if ((right_child_index <= heap_size && (right_child_index>0))) {
+ if (A[right_child_index].frequency < A[smallest].frequency) {
+ smallest = right_child_index;
+ }
+ }
+ // smallest is not the node, node is not a heap
+ if (smallest != index) {
+ swap(&A[index], &A[smallest]);
+ min_heapify(A, smallest);
+ }
+}
+node* extract_min(node A[]) {
+ node minm = A[1];
+ A[1] = A[heap_size];
+ heap_size--;
+ min_heapify(A, 1);
+ node *z;
+ // copying minimum element
+ z = malloc(sizeof(struct node));
+ z->data = minm.data;
+
+ z->frequency = minm.frequency;
+ z->left = minm.left;
+ z->right = minm.right;
+ return z; //returning minimum element
+}
+// Huffman code
+node* greedy_huffman_code(node C[]) {
+ node *min_queue = build_queue(C, 6); // making min-queue
+ while(heap_size > 1) {
+ node *h = extract_min(min_queue);
+ node *i = extract_min(min_queue);
+ node *z;
+ z = malloc(sizeof(node));
+ z->data = '\0';
+ z->left = h;
+ z->right = i;
+ z->frequency = z->left->frequency + z->right->frequency;
+ insert(min_queue, z, z->frequency);
+ }
+ return extract_min(min_queue);
+}
+int main() {
+ node *a = new_node('a', 42);
+ node *b = new_node('b', 20);
+ node *c = new_node('c', 5);
+ node *d = new_node('d', 10);
+ node *e = new_node('e', 11);
+ node *f = new_node('f', 12);
+ node C[] = {*a, *b, *c, *d, *e , *f};
+ node* z = greedy_huffman_code(C);
+ inorder(z); //printing tree
+ printf("\n");
+ return 0;
+}
+
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+A3
+
+# include<stdio.h>
+void knapsack(int n, float weight[], float profit[], float capacity) {
+ float x[20], tp = 0;
+ int i, j, u;
+ u = capacity;
+ for (i = 0; i < n; i++)
+ x[i] = 0.0;
+ for (i = 0; i < n; i++) {
+ if (weight[i] > u)
+ break;
+ else {
+ x[i] = 1.0;
+ tp = tp + profit[i];
+ u = u - weight[i];
+ }
+ }
+ if (i < n)
+ x[i] = u / weight[i];
+ tp = tp + (x[i] * profit[i]);
+ printf("\nThe result vector is:- ");
+ for (i = 0; i < n; i++)
+ printf("%f\t", x[i]);
+ printf("\nMaximum profit is:- %f", tp);
+}
+int main() {
+ float weight[20], profit[20], capacity;
+ int num, i, j;
+ float ratio[20], temp;
+ printf("\nEnter the no. of objects:- ");
+ scanf("%d", &num);
+ printf("\nEnter the wts and profits of each object:- ");
+ for (i = 0; i < num; i++) {
+ scanf("%f %f", &weight[i], &profit[i]);
+ }
+ printf("\nEnter the capacityacity of knapsack:- ");
+ scanf("%f", &capacity);
+ for (i = 0; i < num; i++) {
+ ratio[i] = profit[i] / weight[i];
+ }
+ for (i = 0; i < num; i++) {
+ for (j = i + 1; j < num; j++) {
+ if (ratio[i] < ratio[j]) {
+ temp = ratio[j];
+ ratio[j] = ratio[i];
+ ratio[i] = temp;
+
+ temp = weight[j];
+ weight[j] = weight[i];
+ weight[i] = temp;
+ temp = profit[j];
+ profit[j] = profit[i];
+ profit[i] = temp;
+ }
+ }
+ }
+ knapsack(num, weight, profit, capacity);
+ return(0);
+}
+
+
+
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+A4
+
+#include<stdio.h>
+#include<conio.h>
+int w[10],p[10],v[10][10],n,i,j,cap,x[10]={0};
+int max(int i,int j)
+{
+return ((i>j)?i:j);
+}
+int knap(int i,int j)
+{
+int value;
+if(v[i][j]<0)
+{
+if(j<w[i])
+value=knap(i-1,j);
+else
+value=max(knap(i-1,j),p[i]+knap(i-1,j-w[i]));
+v[i][j]=value;
+}
+return(v[i][j]);
+}
+void main()
+{
+int profit,count=0;
+clrscr();
+printf("\nEnter the number of elements\n");
+scanf("%d",&n);
+printf("Enter the profit and weights of the elements\n");
+for(i=1;i<=n;i++)
+{
+printf("For item no %d\n",i);
+scanf("%d%d",&p[i],&w[i]);
+}
+printf("\nEnter the capacity \n");
+scanf("%d",&cap);
+for(i=0;i<=n;i++)
+for(j=0;j<=cap;j++)
+if((i==0)||(j==0))
+v[i][j]=0;
+else
+v[i][j]=-1;
+profit=knap(n,cap);
+
+i=n;
+j=cap;
+while(j!=0&&i!=0)
+{
+if(v[i][j]!=v[i-1][j])
+{
+x[i]=1;
+j=j-w[i];
+i--;
+}
+else
+i--;
+}
+printf("Items included are\n");
+printf("Sl.no\tweight\tprofit\n");
+for(i=1;i<=n;i++)
+if(x[i])
+printf("%d\t%d\t%d\n",++count,w[i],p[i]);
+printf("Total profit = %d\n",profit);
+getch();
+}
+
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+A5
+#include<stdio.h>
+#include<conio.h>
+#include<math.h>
+int a[30],count=0;
+int place(int pos)
+{
+int i;
+for(i=1;i<pos;i++)
+{
+if((a[i]==a[pos])||((abs(a[i]-a[pos])==abs(i-pos))))
+return 0;
+}
+return 1;
+}
+void print_sol(int n)
+{
+int i,j;
+count++;
+printf("\n\nSolution #%d:\n",count);
+for(i=1;i<=n;i++)
+{
+for(j=1;j<=n;j++)
+{
+if(a[i]==j)
+printf("Q\t");
+else
+printf("*\t");
+}
+printf("\n");
+}
+}
+void queen(int n)
+{
+int k=1;
+a[k]=0;
+while(k!=0)
+{
+a[k]=a[k]+1;
+while((a[k]<=n)&&!place(k))
+a[k]++;
+if(a[k]<=n)
+{
+
+if(k==n)
+print_sol(n);
+else
+{
+k++;
+a[k]=0;
+}
+}
+else
+k--;
+}
+}
+void main()
+{
+int i,n;
+clrscr();
+printf("Enter the number of Queens\n");
+scanf("%d",&n);
+queen(n);
+printf("\nTotal solutions=%d",count);
+getch();
+}
+
+
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+
+B1
+
